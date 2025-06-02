@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/hatenyx/scripts/refs/heads/main/script"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/hatenyx/scripts/refs/heads/main/tradev2"))()
